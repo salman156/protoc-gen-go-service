@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+import "validate/validate.proto";
+
+option go_package = "example/hello";
+
+// Define a message type for a search request
+message SearchRequest {
+  string query = 1; // The search query string
+  int32 page_number = 2; // The page number of results
+  int32 results_per_page = 3; // The number of results to return per page
+}
+
+// Define a message type for a search response
+message SearchResponse {
+  repeated string results = 1; // A list of search results
+  int32 total_results = 2; // The total number of results found
+}
+
+message FirstRPCRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+message FirstRPCResponse {}
+message SecondRPCRequest {}
+message SecondRPCResponse {}
+
+// Define a service for handling search operations
+service SearchService {
+  rpc PerformSearch(SearchRequest) returns (SearchResponse);
+}
+
+service TwoRPCService {
+  rpc FirstRPC(FirstRPCRequest) returns (FirstRPCResponse);
+  rpc SecondRPC(SecondRPCRequest) returns (SecondRPCResponse);
+}
+
+message ClientStreamRPCRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message ClientStreamRPCResponse {}
+
+message ServerStreamRPCRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message ServerStreamRPCResponse {}
+
+message BiStreamRPCRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message BiStreamRPCResponse {}
+
+service StreamingService {
+  rpc ClientStreamRPC(stream ClientStreamRPCRequest) returns (ClientStreamRPCResponse);
+  rpc ServerStreamRPC(ServerStreamRPCRequest) returns (stream ServerStreamRPCResponse);
+  rpc BiStreamRPC(stream BiStreamRPCRequest) returns (stream BiStreamRPCResponse);
+}

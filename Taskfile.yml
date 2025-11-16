@@ -1,0 +1,40 @@
+version: '3'
+
+vars:
+  OUT: "{{ .USER_WORKING_DIR }}/bin"
+
+tasks:
+  libs:
+    status:
+      - test -d lib
+    cmds:
+      - mkdir -p lib/validate
+      - curl -sSL https://raw.githubusercontent.com/envoyproxy/protoc-gen-validate/main/validate/validate.proto -o lib/validate/validate.proto
+  install_tools:
+    status:
+      - test -f bin/buf
+      - test -f bin/protoc-gen-go
+      - test -f bin/protoc-gen-go-grpc
+      - test -f bin/protoc-gen-validate
+    cmds:
+      - GOBIN={{ .OUT }} go install github.com/bufbuild/buf/cmd/buf@v1.53.0
+      - GOBIN={{ .OUT }} go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.10
+      - GOBIN={{ .OUT }} go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1
+      - GOBIN={{ .OUT }} go install github.com/envoyproxy/protoc-gen-validate@v1.2.1
+
+  delete_example:
+    cmds:
+      - rm -f -R example
+  build_tool:
+    deps:
+      - libs
+      - install_tools
+      - delete_example
+    cmds: 
+      - GOBIN={{ .OUT }} go install ./...
+
+  gen:
+    deps:
+      - build_tool
+    cmds:
+      - bin/buf generate proto
